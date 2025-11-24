@@ -1,0 +1,35 @@
+name: Tests
+
+on:
+  push:
+    branches: [ "main", "ADMIN" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm install
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Run backend tests
+        working-directory: ./backend
+        run: npm test --if-present
+
+      - name: Run frontend tests
+        working-directory: ./frontend
+        run: npm test --if-present
