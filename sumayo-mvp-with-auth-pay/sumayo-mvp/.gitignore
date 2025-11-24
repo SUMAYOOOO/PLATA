@@ -1,0 +1,8 @@
+node_modules
+dist
+.env
+.env.local
+**/node_modules
+.vscode
+.DS_Store
+/mnt/data
