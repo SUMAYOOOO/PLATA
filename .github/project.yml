@@ -1,0 +1,15 @@
+name: "SUMAYÕ – Kanban"
+description: "Control del progreso del MVP y la V1"
+public: true
+
+items:
+  - title: "Backend Auth con JWT"
+    status: "In Progress"
+  - title: "Stripe — Precio automático por tema"
+    status: "In Progress"
+  - title: "Frontend dashboard"
+    status: "Todo"
+  - title: "Sandbox HTML5"
+    status: "Todo"
+  - title: "Gamificación"
+    status: "Backlog"
