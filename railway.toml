@@ -1,0 +1,8 @@
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+root = "frontend"
+build = "npm install && npm run build"
+start = "npm start"
+
