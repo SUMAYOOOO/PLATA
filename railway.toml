@@ -4,5 +4,24 @@ builder = "NIXPACKS"
 [deploy]
 root = "frontend"
 build = "npm install && npm run build"
+start = "npm run start"
+
+[env]
+PORT = "3000"
+
+[phases.setup]
+nixPkgs = ["nodejs_18"]
+
+[phases.build]
+cmds = ["npm install", "npm run build"]
+
+[phases.start]
+cmd = "npm run start"
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+root = "frontend"
+build = "npm install && npm run build"
 start = "npm start"
 
