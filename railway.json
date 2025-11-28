@@ -1,7 +1,7 @@
 {
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "cd backend && npm run build && npm run prisma:generate"
+    "buildCommand": "cd backend && npm install && npm run build && npm run prisma:generate"
   },
   "deploy": {
     "startCommand": "cd backend && PORT=3000 npm start"
