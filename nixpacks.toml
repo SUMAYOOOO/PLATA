@@ -1,0 +1,12 @@
+[build]
+builder = "nixpacks"
+
+[phases.setup]
+cmds = ["cd backend && npm install"]
+
+[phases.build]
+cmds = ["cd backend && npm run build", "cd backend && npm run prisma:generate"]
+
+[start]
+cmd = "cd backend && npm start"
+workingDir = "backend"
