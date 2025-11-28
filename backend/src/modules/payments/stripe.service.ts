@@ -1,22 +1,40 @@
+import { Injectable } from '@nestjs/common';
+import { TopicMetadata } from '../../types/topic.types';
 import Stripe from 'stripe';
-import prisma from '../../prisma.client';
-const stripe = new Stripe(process.env.STRIPE_SECRET || '', { apiVersion: '2025-11-17.clover' });
 
+@Injectable()
 export class StripeService {
-  async getOrCreatePriceForTopic(topicId: string) {
-    const topic = await prisma.topic.findUnique({ where: { id: topicId }});
-    if (!topic) throw new Error('Topic not found');
-    const existing = topic.metadata?.stripePriceId;
-    if (existing) return existing;
-    // create product & price
-    const product = await stripe.products.create({ name: topic.title, description: topic.description || '' });
-    const price = await stripe.prices.create({
-      product: product.id,
-      unit_amount: Math.round((topic.price || 0) * 100),
-      currency: 'usd'
+  private stripe: Stripe;
+
+  constructor() {
+    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+      apiVersion: '2025-11-17.clover',
     });
-    // save to metadata
-    await prisma.topic.update({ where: { id: topicId }, data: { metadata: { ...topic.metadata, stripePriceId: price.id } }});
-    return price.id;
   }
+
+  async createPaymentIntent(topic: any, user: any) {
+    const metadata = topic.metadata as TopicMetadata;
+    const stripePriceId = metadata.stripePriceId;
+
+    if (!stripePriceId) {
+      throw new Error('Stripe price ID not found in topic metadata');
+    }
+
+    const paymentMetadata = {
+      ...metadata,
+      topicId: topic.id,
+      userId: user.id,
+    };
+
+    const paymentIntent = await this.stripe.paymentIntents.create({
+      amount: topic.price * 100, // Convert to cents
+      currency: 'eur',
+      metadata: paymentMetadata,
+      // ... resto de la configuración
+    });
+
+    return paymentIntent;
+  }
+
+  // ... otros métodos
 }
