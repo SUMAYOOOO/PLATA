@@ -1,8 +1,21 @@
-FROM node:20-alpine
+FROM node:18-alpine
+
 WORKDIR /usr/src/app
-COPY package.json package-lock.json* ./
-RUN npm install --legacy-peer-deps
+
+# Copiar package.json
+COPY package*.json ./
+RUN npm install
+
+# Copiar todo el código
 COPY . .
-RUN npm run build || true
+
+# Generar Prisma Client
+RUN npx prisma generate
+
+# Compilar TypeScript
+RUN npm run build
+
 EXPOSE 3001
-CMD ["npm", "run", "start:dev"]
+
+# Usar start:prod en lugar de start:dev para producción
+CMD ["npm", "run", "start:prod"]
