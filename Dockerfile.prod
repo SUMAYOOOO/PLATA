@@ -1,10 +1,7 @@
-# ==================== BUILD STAGE ====================
-FROM node:18-alpine AS builder
+# Usar imagen base que ya tiene OpenSSL
+FROM node:18-bullseye AS builder
 
 WORKDIR /usr/src/app
-
-# INSTALAR OPENSSL CRÍTICO PARA PRISMA
-RUN apk add --no-cache openssl openssl-dev
 
 COPY package*.json ./
 COPY tsconfig.json ./
@@ -19,22 +16,20 @@ RUN npm run build
 RUN npm prune --production
 
 # ==================== PRODUCTION STAGE ====================
-FROM node:18-alpine AS production
+FROM node:18-bullseye-slim AS production
 
-# INSTALAR OPENSSL EN PRODUCCIÓN TAMBIÉN
-RUN apk add --no-cache curl openssl
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src/app
 
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nestjs -u 1001
+RUN groupadd -r nodejs && useradd -r -g nodejs nodejs
 
-COPY --from=builder --chown=nestjs:nodejs /usr/src/app/node_modules ./node_modules
-COPY --from=builder --chown=nestjs:nodejs /usr/src/app/dist ./dist
-COPY --from=builder --chown=nestjs:nodejs /usr/src/app/package.json ./
-COPY --from=builder --chown=nestjs:nodejs /usr/src/app/prisma ./prisma
+COPY --from=builder --chown=nodejs:nodejs /usr/src/app/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /usr/src/app/dist ./dist
+COPY --from=builder --chown=nodejs:nodejs /usr/src/app/package.json ./
+COPY --from=builder --chown=nodejs:nodejs /usr/src/app/prisma ./prisma
 
-USER nestjs
+USER nodejs
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD curl -f http://localhost:3001/api/v1/health || exit 1
