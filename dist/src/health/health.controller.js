@@ -8,12 +8,12 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HealthController = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma.service");
 let HealthController = class HealthController {
+    prisma;
     constructor(prisma) {
         this.prisma = prisma;
     }
@@ -22,7 +22,7 @@ let HealthController = class HealthController {
             status: 'ok',
             timestamp: new Date().toISOString(),
             environment: process.env.NODE_ENV || 'development',
-            version: process.env.npm_package_version || '1.0.0',
+            version: '1.0.0',
         };
         return checks;
     }
@@ -31,7 +31,7 @@ let HealthController = class HealthController {
             status: 'ok',
             timestamp: new Date().toISOString(),
             environment: process.env.NODE_ENV || 'development',
-            version: process.env.npm_package_version || '1.0.0',
+            version: '1.0.0',
             services: {},
         };
         try {
@@ -60,20 +60,14 @@ let HealthController = class HealthController {
             return {
                 status: 'ready',
                 timestamp: new Date().toISOString(),
-                services: {
-                    database: 'ready',
-                    api: 'ready'
-                }
+                services: { database: 'ready', api: 'ready' }
             };
         }
         catch (error) {
             return {
                 status: 'not_ready',
                 timestamp: new Date().toISOString(),
-                services: {
-                    database: 'not_ready',
-                    api: 'ready'
-                },
+                services: { database: 'not_ready', api: 'ready' },
                 error: error.message
             };
         }
@@ -100,6 +94,6 @@ __decorate([
 ], HealthController.prototype, "readinessCheck", null);
 exports.HealthController = HealthController = __decorate([
     (0, common_1.Controller)('health'),
-    __metadata("design:paramtypes", [typeof (_a = typeof prisma_service_1.PrismaService !== "undefined" && prisma_service_1.PrismaService) === "function" ? _a : Object])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
 ], HealthController);
 //# sourceMappingURL=health.controller.js.map

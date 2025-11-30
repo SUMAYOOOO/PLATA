@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppLogger = void 0;
 const common_1 = require("@nestjs/common");
 class AppLogger {
+    static logger = new common_1.Logger('Application');
     static log(message, context) {
         this.logger.log(message, context);
     }
@@ -20,5 +21,4 @@ class AppLogger {
     }
 }
 exports.AppLogger = AppLogger;
-AppLogger.logger = new common_1.Logger('Application');
 //# sourceMappingURL=logger.config.js.map

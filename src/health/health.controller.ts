@@ -11,9 +11,8 @@ export class HealthController {
       status: 'ok',
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development',
-      version: process.env.npm_package_version || '1.0.0',
+      version: '1.0.0',
     };
-
     return checks;
   }
 
@@ -23,7 +22,7 @@ export class HealthController {
       status: 'ok',
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development',
-      version: process.env.npm_package_version || '1.0.0',
+      version: '1.0.0',
       services: {},
     };
 
@@ -46,7 +45,6 @@ export class HealthController {
     };
 
     checks.uptime = process.uptime();
-
     return checks;
   }
 
@@ -54,23 +52,16 @@ export class HealthController {
   async readinessCheck() {
     try {
       await this.prisma.$queryRaw`SELECT 1`;
-      
       return {
         status: 'ready',
         timestamp: new Date().toISOString(),
-        services: {
-          database: 'ready',
-          api: 'ready'
-        }
+        services: { database: 'ready', api: 'ready' }
       };
     } catch (error) {
       return {
         status: 'not_ready',
         timestamp: new Date().toISOString(),
-        services: {
-          database: 'not_ready',
-          api: 'ready'
-        },
+        services: { database: 'not_ready', api: 'ready' },
         error: error.message
       };
     }

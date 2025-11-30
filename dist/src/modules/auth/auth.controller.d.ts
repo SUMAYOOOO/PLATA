@@ -4,6 +4,6 @@ export declare class AuthController {
         email: string;
     }>;
     login(body: any): Promise<{
-        accessToken: any;
+        accessToken: string;
     }>;
 }

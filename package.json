@@ -6,22 +6,31 @@
     "prebuild": "npm run prisma:generate",
     "build": "tsc -p tsconfig.json",
     "build:watch": "tsc -p tsconfig.json --watch",
-    "start": "node dist/main.js",
+    
+    "start": "node dist/src/main.js",
     "start:dev": "ts-node-dev --respawn --transpile-only src/main.ts",
-    "start:prod": "node dist/main.js",
-    "start:docker": "node dist/main.js",
+    "start:prod": "node dist/src/main.js",
+    "start:docker": "node dist/src/main.js",
+    
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "prisma:seed": "ts-node prisma/seed.ts",
-    "lint": "eslint --no-eslintrc --config .eslintrc.js \"{src,prisma}/**/*.ts\" --fix",
-    "lint:check": "eslint --no-eslintrc --config .eslintrc.js \"{src,prisma}/**/*.ts\"",
+    
+    "lint": "eslint \"{src,test,prisma}/**/*.ts\" --fix",
+    "lint:check": "eslint \"{src,test,prisma}/**/*.ts\"",
+    "format": "prettier --write \"{src,test,prisma}/**/*.ts\"",
+    "format:check": "prettier --check \"{src,test,prisma}/**/*.ts\"",
+    
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    
     "type-check": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "prestart:prod": "npm run build"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
@@ -34,8 +43,8 @@
     "class-validator": "^0.14.3",
     "jsonwebtoken": "^9.0.0",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.8.0",
-    "stripe": "^20.0.0"
+    "stripe": "^20.0.0",
+    "rxjs": "^7.8.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
@@ -45,10 +54,13 @@
     "@types/bcrypt": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.0",
     "@types/jest": "^29.5.0",
-    "eslint": "^7.32.0",
-    "@typescript-eslint/eslint-plugin": "^5.62.0",
-    "@typescript-eslint/parser": "^5.62.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.45.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
     "jest": "^29.6.0",
+    "prettier": "^3.0.0",
     "prisma": "^5.0.0",
     "ts-jest": "^29.1.0",
     "ts-node": "^10.9.1",
@@ -56,6 +68,13 @@
     "typescript": "^5.0.0"
   },
   "engines": {
-    "node": ">=18.0.0"
-  }
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "keywords": [
+    "nestjs",
+    "education",
+    "math",
+    "api"
+  ]
 }

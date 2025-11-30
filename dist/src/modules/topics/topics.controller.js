@@ -11,10 +11,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TopicsController = void 0;
 const common_1 = require("@nestjs/common");
-const prisma_client_1 = require("../../prisma.client");
+const prisma_client_1 = __importDefault(require("../../prisma.client"));
 let TopicsController = class TopicsController {
     async get(id) {
         return prisma_client_1.default.topic.findUnique({ where: { id } });
