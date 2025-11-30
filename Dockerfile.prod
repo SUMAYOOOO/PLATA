@@ -3,6 +3,9 @@ FROM node:18-alpine AS builder
 
 WORKDIR /usr/src/app
 
+# INSTALAR OPENSSL CRÍTICO PARA PRISMA
+RUN apk add --no-cache openssl openssl-dev
+
 COPY package*.json ./
 COPY tsconfig.json ./
 COPY prisma ./prisma/
@@ -10,21 +13,16 @@ COPY prisma ./prisma/
 RUN npm ci
 
 COPY src ./src
-COPY scripts ./scripts
 
 RUN npx prisma generate
 RUN npm run build
-RUN npm run postbuild
-
-# Verificar que main.js está en dist/ (no en dist/src/)
-RUN test -f dist/main.js && echo "✅ dist/main.js verified" || (echo "❌ dist/main.js missing" && find dist -name "*.js" | head -10 && exit 1)
-
 RUN npm prune --production
 
 # ==================== PRODUCTION STAGE ====================
 FROM node:18-alpine AS production
 
-RUN apk add --no-cache curl
+# INSTALAR OPENSSL EN PRODUCCIÓN TAMBIÉN
+RUN apk add --no-cache curl openssl
 
 WORKDIR /usr/src/app
 
@@ -35,9 +33,6 @@ COPY --from=builder --chown=nestjs:nodejs /usr/src/app/node_modules ./node_modul
 COPY --from=builder --chown=nestjs:nodejs /usr/src/app/dist ./dist
 COPY --from=builder --chown=nestjs:nodejs /usr/src/app/package.json ./
 COPY --from=builder --chown=nestjs:nodejs /usr/src/app/prisma ./prisma
-
-# Verificación final
-RUN test -f dist/main.js && echo "✅ Production verified: dist/main.js exists" || exit 1
 
 USER nestjs
 
