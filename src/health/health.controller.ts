@@ -7,63 +7,55 @@ export class HealthController {
 
   @Get()
   async check() {
-    const checks = {
+    const dbHealth = await this.prisma.healthCheck();
+    
+    return {
       status: 'ok',
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development',
       version: '1.0.0',
+      services: {
+        api: 'healthy',
+        database: dbHealth.status
+      }
     };
-    return checks;
-  }
-
-  @Get('detailed')
-  async detailedCheck() {
-    const checks: any = {
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'development',
-      version: '1.0.0',
-      services: {},
-    };
-
-    try {
-      await this.prisma.$queryRaw`SELECT 1`;
-      checks.services.database = { status: 'ok', message: 'Database connected' };
-    } catch (error) {
-      checks.status = 'error';
-      checks.services.database = { 
-        status: 'error', 
-        message: 'Database connection failed',
-        error: error.message 
-      };
-    }
-
-    checks.memory = {
-      used: process.memoryUsage().heapUsed / 1024 / 1024,
-      total: process.memoryUsage().heapTotal / 1024 / 1024,
-      rss: process.memoryUsage().rss / 1024 / 1024,
-    };
-
-    checks.uptime = process.uptime();
-    return checks;
   }
 
   @Get('ready')
   async readinessCheck() {
-    try {
-      await this.prisma.$queryRaw`SELECT 1`;
-      return {
-        status: 'ready',
-        timestamp: new Date().toISOString(),
-        services: { database: 'ready', api: 'ready' }
-      };
-    } catch (error) {
-      return {
-        status: 'not_ready',
-        timestamp: new Date().toISOString(),
-        services: { database: 'not_ready', api: 'ready' },
-        error: error.message
-      };
-    }
+    const dbHealth = await this.prisma.healthCheck();
+    
+    return {
+      status: 'ready',
+      timestamp: new Date().toISOString(),
+      services: {
+        api: 'ready',
+        database: dbHealth.status
+      },
+      database_message: dbHealth.message
+    };
+  }
+
+  @Get('detailed')
+  async detailedCheck() {
+    const dbHealth = await this.prisma.healthCheck();
+    
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      version: '1.0.0',
+      services: {
+        database: dbHealth
+      },
+      system: {
+        memory: {
+          used: process.memoryUsage().heapUsed / 1024 / 1024,
+          total: process.memoryUsage().heapTotal / 1024 / 1024,
+        },
+        uptime: process.uptime(),
+        node_version: process.version,
+      }
+    };
   }
 }
