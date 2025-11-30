@@ -10,9 +10,15 @@ COPY prisma ./prisma/
 RUN npm ci
 
 COPY src ./src
+COPY scripts ./scripts
 
 RUN npx prisma generate
 RUN npm run build
+RUN npm run postbuild
+
+# Verificar que main.js está en dist/ (no en dist/src/)
+RUN test -f dist/main.js && echo "✅ dist/main.js verified" || (echo "❌ dist/main.js missing" && find dist -name "*.js" | head -10 && exit 1)
+
 RUN npm prune --production
 
 # ==================== PRODUCTION STAGE ====================
@@ -30,10 +36,13 @@ COPY --from=builder --chown=nestjs:nodejs /usr/src/app/dist ./dist
 COPY --from=builder --chown=nestjs:nodejs /usr/src/app/package.json ./
 COPY --from=builder --chown=nestjs:nodejs /usr/src/app/prisma ./prisma
 
+# Verificación final
+RUN test -f dist/main.js && echo "✅ Production verified: dist/main.js exists" || exit 1
+
 USER nestjs
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD curl -f http://localhost:3001/api/v1/health/ready || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:3001/api/v1/health || exit 1
 
 EXPOSE 3001
 

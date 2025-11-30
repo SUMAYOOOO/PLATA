@@ -6,31 +6,27 @@
     "prebuild": "npm run prisma:generate",
     "build": "tsc -p tsconfig.json",
     "build:watch": "tsc -p tsconfig.json --watch",
-    
     "start": "node dist/src/main.js",
     "start:dev": "ts-node-dev --respawn --transpile-only src/main.ts",
     "start:prod": "node dist/src/main.js",
     "start:docker": "node dist/src/main.js",
-    
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "prisma:seed": "ts-node prisma/seed.ts",
-    
     "lint": "eslint \"{src,test,prisma}/**/*.ts\" --fix",
     "lint:check": "eslint \"{src,test,prisma}/**/*.ts\"",
     "format": "prettier --write \"{src,test,prisma}/**/*.ts\"",
     "format:check": "prettier --check \"{src,test,prisma}/**/*.ts\"",
-    
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist",
-    "prestart:prod": "npm run build"
+    "prestart:prod": "npm run build",
+    "postbuild": "node scripts/fix-dist.js"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
