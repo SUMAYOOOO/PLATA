@@ -1,32 +1,33 @@
 {
   "name": "sumayo-backend",
   "version": "1.0.0",
-  "description": "Backend para SUMAYÕ - LA BRUJA DE LAS MATES®",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "scripts": {
     "prebuild": "npm run prisma:generate",
     "build": "tsc -p tsconfig.json",
-    "build:watch": "tsc -p tsconfig.json --watch",
-    "start": "node dist/src/main.js",
+    "postbuild": "node .docker/scripts/fix-dist.js",
+    "build:docker": "docker build -f Dockerfile.prod -t sumayo-backend .",
+    "test:docker": "docker run --rm -v $(pwd)/test-results:/app/test-results sumayo-backend npm test",
+    "start": "node dist/main.js",
     "start:dev": "ts-node-dev --respawn --transpile-only src/main.ts",
-    "start:prod": "node dist/src/main.js",
-    "start:docker": "node dist/src/main.js",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev --name init",
-    "prisma:deploy": "prisma migrate deploy",
+    "prisma:migrate:dev": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "prisma:seed": "ts-node prisma/seed.ts",
     "lint": "eslint \"{src,test,prisma}/**/*.ts\" --fix",
-    "lint:check": "eslint \"{src,test,prisma}/**/*.ts\"",
     "format": "prettier --write \"{src,test,prisma}/**/*.ts\"",
-    "format:check": "prettier --check \"{src,test,prisma}/**/*.ts\"",
     "test": "jest",
-    "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
-    "test:e2e": "jest --config ./test/jest-e2e.json",
-    "type-check": "tsc --noEmit",
-    "clean": "rm -rf dist",
-    "prestart:prod": "npm run build",
-    "postbuild": "node scripts/fix-dist.js"
+    "test:ci": "jest --ci --coverage",
+    "type-check": "tsc --noEmit --incremental",
+    "clean": "rm -rf dist node_modules/.cache",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "railway:deploy": "bash .docker/scripts/deploy-railway.sh"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
@@ -39,8 +40,8 @@
     "class-validator": "^0.14.3",
     "jsonwebtoken": "^9.0.0",
     "reflect-metadata": "^0.1.13",
-    "stripe": "^20.0.0",
-    "rxjs": "^7.8.0"
+    "rxjs": "^7.8.0",
+    "stripe": "^20.0.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
@@ -62,15 +63,5 @@
     "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.0.0"
-  },
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0"
-  },
-  "keywords": [
-    "nestjs",
-    "education",
-    "math",
-    "api"
-  ]
+  }
 }

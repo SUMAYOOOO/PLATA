@@ -1,61 +1,37 @@
 import { Controller, Get } from '@nestjs/common';
-import { PrismaService } from '../prisma.service';
+import { HealthCheck, HealthCheckService, PrismaHealthIndicator } from '@nestjs/terminus';
+import { PrismaService } from '../prisma/prisma.service';
 
-@Controller('health')
+@Controller('api/v1/health')
 export class HealthController {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private health: HealthCheckService,
+    private prismaHealth: PrismaHealthIndicator,
+    private prisma: PrismaService,
+  ) {}
 
   @Get()
-  async check() {
-    const dbHealth = await this.prisma.healthCheck();
-    
-    return {
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'development',
-      version: '1.0.0',
-      services: {
-        api: 'healthy',
-        database: dbHealth.status
-      }
-    };
+  @HealthCheck()
+  check() {
+    return this.health.check([
+      () => this.prismaHealth.pingCheck('database', this.prisma),
+    ]);
   }
 
   @Get('ready')
-  async readinessCheck() {
-    const dbHealth = await this.prisma.healthCheck();
-    
-    return {
-      status: 'ready',
-      timestamp: new Date().toISOString(),
-      services: {
-        api: 'ready',
-        database: dbHealth.status
-      },
-      database_message: dbHealth.message
-    };
+  ready() {
+    return { status: 'ok', timestamp: new Date().toISOString() };
   }
 
   @Get('detailed')
-  async detailedCheck() {
-    const dbHealth = await this.prisma.healthCheck();
-    
+  @HealthCheck()
+  detailed() {
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'development',
-      version: '1.0.0',
-      services: {
-        database: dbHealth
-      },
-      system: {
-        memory: {
-          used: process.memoryUsage().heapUsed / 1024 / 1024,
-          total: process.memoryUsage().heapTotal / 1024 / 1024,
-        },
-        uptime: process.uptime(),
-        node_version: process.version,
-      }
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      env: process.env.NODE_ENV,
     };
   }
 }
