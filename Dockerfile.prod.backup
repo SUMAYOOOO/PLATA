@@ -1,39 +1,68 @@
-# Usar imagen base que ya tiene OpenSSL
+# ==================== BUILDER STAGE (OPTIMIZED) ====================
 FROM node:18-bullseye AS builder
 
 WORKDIR /usr/src/app
 
+# 1. Copiar archivos de configuración (capa más estable)
 COPY package*.json ./
 COPY tsconfig.json ./
 COPY prisma ./prisma/
 
-RUN npm ci
+# 2. Instalar solo dependencias de producción primero (mejor caching)
+RUN npm ci --only=production
 
+# 3. Copiar fuente y generar Prisma client
 COPY src ./src
-
 RUN npx prisma generate
-RUN npm run build
-RUN npm prune --production
 
-# ==================== PRODUCTION STAGE ====================
+# 4. Instalar devDependencies solo para build
+RUN npm ci --only=development
+
+# 5. Build con estructura corregida
+COPY scripts ./scripts
+RUN npm run build
+
+# 6. Verificar estructura resultante
+RUN ls -la dist/ && test -f dist/main.js
+
+# ==================== PRODUCTION STAGE (SECURE) ====================
 FROM node:18-bullseye-slim AS production
 
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# 1. Instalar solo lo necesario para producción
+RUN apt-get update && apt-get install -y \
+    curl \
+    openssl \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
 WORKDIR /usr/src/app
 
-RUN groupadd -r nodejs && useradd -r -g nodejs nodejs
+# 2. Crear usuario no-root con UID/GID específicos (mejor para volumes)
+RUN groupadd -g 1001 nodejs && \
+    useradd -r -u 1001 -g nodejs nodejs && \
+    chown -R nodejs:nodejs /usr/src/app
 
+# 3. Copiar desde builder con permisos correctos
 COPY --from=builder --chown=nodejs:nodejs /usr/src/app/node_modules ./node_modules
 COPY --from=builder --chown=nodejs:nodejs /usr/src/app/dist ./dist
 COPY --from=builder --chown=nodejs:nodejs /usr/src/app/package.json ./
 COPY --from=builder --chown=nodejs:nodejs /usr/src/app/prisma ./prisma
 
-USER nodejs
+# 4. Variables de entorno runtime
+ENV NODE_ENV=production \
+    PORT=3001 \
+    HOST=0.0.0.0
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:3001/api/v1/health || exit 1
+# 5. Healthcheck mejorado
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:3001/api/v1/health || exit 1
 
+# 6. Exposición de puertos
 EXPOSE 3001
 
-CMD ["node", "dist/main"]
+# 7. Comando como usuario no-root
+USER nodejs
+
+# 8. Entrypoint para inyección de variables
+ENTRYPOINT ["node"]
+CMD ["dist/main.js"]

@@ -19,7 +19,7 @@ RUN npx prisma generate
 RUN npm ci --only=development
 
 # 5. Build con estructura corregida
-COPY scripts ./scripts
+COPY .docker/scripts ./scripts
 RUN npm run build
 
 # 6. Verificar estructura resultante
