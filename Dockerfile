@@ -13,6 +13,7 @@ RUN npm ci --only=production && npm cache clean --force
 
 # Copiar código fuente
 COPY src ./src
+COPY scripts ./scripts
 
 # Generar Prisma Client y compilar
 RUN npx prisma generate
