@@ -1,43 +1,39 @@
-version: "3.8"
+version: '3.8'
+
 services:
-  db:
-    image: postgres:15
+  postgres:
+    image: postgres:15-alpine
     environment:
-      POSTGRES_USER: sumayo
-      POSTGRES_PASSWORD: sumayo123
-      POSTGRES_DB: sumayo_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sumayo
     ports:
       - "5432:5432"
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  backend:
+  app:
     build:
-      context: ./backend
-    command: npm run start:dev
+      context: .
+      dockerfile: Dockerfile.prod
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/sumayo
+      JWT_SECRET: local-jwt-secret-change-in-production
     ports:
       - "3001:3001"
-    environment:
-      DATABASE_URL: postgres://sumayo:sumayo123@db:5432/sumayo_db
-      JWT_SECRET: supersecretdev
-      STRIPE_SECRET: ""
     depends_on:
-      - db
+      postgres:
+        condition: service_healthy
     volumes:
-      - ./backend:/usr/src/app
-
-  frontend:
-    build:
-      context: ./frontend
-    command: npm run dev
-    ports:
-      - "3000:3000"
-    environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3001
-    depends_on:
-      - backend
-    volumes:
-      - ./frontend:/usr/src/app
+      - ./src:/usr/src/app/src
+      - ./prisma:/usr/src/app/prisma
+    command: npm run start:dev
 
 volumes:
-  db_data:
+  postgres_data:

@@ -1,17 +1,37 @@
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile.prod"
+buildCommand = ""
+buildArgs = { NODE_ENV = "production" }
 
 [deploy]
-healthcheckPath = "/api/v1/health/ready"
-healthcheckTimeout = 100
-restartPolicyType = "ON_FAILURE"
-startCommand = "node dist/main"
+healthcheckPath = "/api/v1/health"
+healthcheckTimeout = 10
+restartPolicyType = "ALWAYS"
+startCommand = "node dist/main.js"
+startTimeout = 300
 
-[env]
+[variables]
 NODE_ENV = "production"
+PORT = "3001"
 
-# Variables requeridas (configurar en Railway dashboard)
-# DATABASE_URL = ""
-# JWT_SECRET = ""
-# STRIPE_SECRET_KEY = ""
+# Railway generará automáticamente estos servicios
+[services.postgres]
+type = "postgresql"
+version = "15"
+
+# Reglas de red
+[network]
+port = 3001
+[[network.rules]]
+port = 3001
+path = "/"
+protocol = "http"
+
+# Monitoreo y logs
+[observability]
+[[observability.metrics]]
+type = "prometheus"
+path = "/metrics"
+[[observability.logs]]
+type = "json"
